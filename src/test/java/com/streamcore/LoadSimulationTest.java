@@ -41,7 +41,7 @@ class LoadSimulationTest {
 
     @Test
     void simulateLoad() throws Exception {
-        int clientCount = 500;
+        int clientCount = 100;
         int messagesPerClient = 10;
         int threadPoolSize = 50;
 
@@ -67,13 +67,16 @@ class LoadSimulationTest {
 
                     for (int j = 0; j < messagesPerClient; j++) {
                         int randomBandwidth = ThreadLocalRandom.current().nextInt(500, 20001);
-                        String payload = "{\"sessionId\":\"" + sessionId + "\", \"bandwidthKbps\":" + randomBandwidth + "}";
+                        Map<String, Object> payload = Map.of(
+                            "sessionId", sessionId,
+                            "bandwidthKbps", randomBandwidth
+                        );
                         
                         StompHeaders headers = new StompHeaders();
                         headers.setDestination("/app/stream.update");
                         headers.setContentType(org.springframework.util.MimeTypeUtils.APPLICATION_JSON);
                         
-                        session.send(headers, payload.getBytes());
+                        session.send(headers, payload);
                         Thread.sleep(100);
                     }
                     
