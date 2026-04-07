@@ -47,6 +47,7 @@ class LoadSimulationTest {
 
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(threadPoolSize);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
+        List<String> sessionIds = new CopyOnWriteArrayList<>();
 
         WebSocketStompClient stompClient = new WebSocketStompClient(new SockJsClient(
                 List.of(new WebSocketTransport(new StandardWebSocketClient()))));
@@ -61,6 +62,7 @@ class LoadSimulationTest {
             executor.submit(() -> {
                 try {
                     String sessionId = UUID.randomUUID().toString();
+                    sessionIds.add(sessionId);
                     String url = "ws://localhost:" + port + "/stream-ws";
                     
                     StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {}).get(5, TimeUnit.SECONDS);
@@ -80,9 +82,7 @@ class LoadSimulationTest {
                         Thread.sleep(100);
                     }
                     
-                    // Simulate disconnect and removal from local registry (which normally WebSocket disconnect listener handles, 
-                    // but since we lack explicit interceptor binding we might just call remove to assure clean state or assume it)
-                    sessionRegistry.remove(sessionId); 
+                    // Note: sessionRegistry.remove(sessionId) is deferred until later so in-flight messages do not recreate it.
                     session.disconnect();
                     future.complete(null);
 
@@ -97,6 +97,11 @@ class LoadSimulationTest {
 
         // Let system process all metrics
         Thread.sleep(2000);
+
+        // Safely remove after all in-flight messages have definitely been processed
+        for (String id : sessionIds) {
+            sessionRegistry.remove(id);
+        }
 
         Map<String, Object> metrics = metricsController.getMetrics();
         
