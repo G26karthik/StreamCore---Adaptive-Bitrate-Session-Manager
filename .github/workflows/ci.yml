@@ -1,4 +1,4 @@
-name: Java CI with Maven
+name: Software Testing CI Suite
 
 on:
   push:
@@ -7,34 +7,62 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  # Check 1: Unit Testing on Bitrate Quality Level Constraints
+  unit-test-bitrate:
+    name: "1. Unit Test - Bitrate Quality Specifications"
     runs-on: ubuntu-latest
-
-    # We need a Redis service for tests that require Redis Context load
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Java 21 (Temurin)
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
-        
-    - name: Build with Maven and Run Tests
-      # We verify, and also pass localhost since services run on host's exposed port 6379 via standard bindings
-      run: mvn clean verify -Dspring.data.redis.host=localhost
-      
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: target/surefire-reports/
+      - uses: actions/checkout@v4
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run BitrateLevel Unit Tests
+        run: mvn test -Dtest=BitrateLevelTest
+
+  # Check 2: Unit Testing on Viewer Session Domain Model
+  unit-test-session:
+    name: "2. Unit Test - Viewer Session Lifecycle & State"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run ViewerSession Unit Tests
+        run: mvn test -Dtest=ViewerSessionTest
+
+  # Check 3: Component / Subsystem Testing on In-Memory LRU Cache
+  component-test-cache:
+    name: "3. Component Test - LRU Cache Eviction & Hit Rates"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run ChunkMetadataCache Component Tests
+        run: mvn test -Dtest=ChunkMetadataCacheTest
+
+  # Check 4: Behavioral & Integration Testing on ABR Decision Engine
+  behavioral-test-abr:
+    name: "4. Behavioral Test - ABR Hysteresis Decision Engine"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run AbrDecisionEngine Behavioral Tests
+        run: mvn test -Dtest=AbrDecisionEngineTest
