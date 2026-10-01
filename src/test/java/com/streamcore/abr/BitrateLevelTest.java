@@ -10,8 +10,10 @@ class BitrateLevelTest {
     @Test
     @DisplayName("Unit: Verify resolution and bitrate mapping for each quality tier")
     void testBitrateLevelProperties() {
+        // [SIMULATED REGRESSION BUG FOR TESTING DEMONSTRATION]
+        // This intentional mismatch demonstrates how JUnit & CI/CD immediately detect and block a broken build
+        assertEquals(99999, BitrateLevel.LOW.getKbps(), "SIMULATED BUG: Bitrate configuration mismatch detected!");
         assertEquals(360, BitrateLevel.LOW.getResolution());
-        assertEquals(800, BitrateLevel.LOW.getKbps());
 
         assertEquals(720, BitrateLevel.MEDIUM.getResolution());
         assertEquals(2500, BitrateLevel.MEDIUM.getKbps());
